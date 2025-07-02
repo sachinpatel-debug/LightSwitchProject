@@ -9,20 +9,23 @@
 ServoTimer2 myServo;
 RH_ASK driver;
 int lightStatus = 0;
+int photoResistance = 0;
 void setup()
 {
-  Serial.begin(9600);	
+  // Serial.begin(9600);	
   driver.init();
   // Serial.println("This is the receiver sketch"); 
   myServo.attach(3);
   // pinMode(7, OUTPUT);
-  myServo.write(1750);
+  myServo.write(1675);
 
   
 }
 
 void loop()
 {
+  photoResistance = analogRead(A0);
+  Serial.println(photoResistance);
   // randomSeed(analogRead(A0));
   // int randomNumber=random(180);
   // int buttonStatus = digitalRead(11);
@@ -71,29 +74,30 @@ void loop()
     // Serial.println("      ");
     // Serial.println((char)buf);         
     String message = (char*)buf;
-    message.remove(message.length() - 1, 1);
-    // Serial.print("This is the message as a string: ");
-    // Serial.println(message);
+  message = message.substring(0, 2);    
+  Serial.print("This is the message as a string: ");
+    Serial.println(message);
     if(message == "Ga"){
       // digitalWrite(7, HIGH);
       buf[0] = 0;
       buf[1] = 0;
       // delay(500);
       // digitalWrite(7, LOW);
-      if(lightStatus ==0){
-        myServo.write(1400);
-        delay(1000); 
-        myServo.write(1750);        // digitalWrite(7,HIGH);
-        lightStatus = 1;
+      
+      if(photoResistance > 705){
+        myServo.write(2250);
+        delay(1000);
+        myServo.write(1685);
+        // digitalWrite(7, LOW);
+        // lightStatus = 0;
         // Serial.print("The light status is ");
         // Serial.println(lightStatus);
       }
-      else if(lightStatus == 1){
-        myServo.write(2250);
-        delay(1000);
-        myServo.write(1750);
-        // digitalWrite(7, LOW);
-        lightStatus = 0;
+      if(photoResistance < 705){
+        myServo.write(1400);
+        delay(1000); 
+        myServo.write(1675);        // digitalWrite(7,HIGH);
+        // lightStatus = 1;
         // Serial.print("The light status is ");
         // Serial.println(lightStatus);
       }
