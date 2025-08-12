@@ -56,6 +56,7 @@ void loop()
   else if(wakeUpTime ==true){
 unsigned long timeBeforeLoop = millis();
     digitalWrite(RxEn, HIGH);
+    delay(100);
     do{
     if (driver.recv(buf, &buflen)) // Non-blocking
     {
