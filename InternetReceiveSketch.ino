@@ -14,11 +14,14 @@ int lightStatus = 0;
 uint8_t buf[2];
 uint8_t buflen = sizeof(buf);  
 int timeElapsed;
+const int RxEn = 8;
 ISR(WDT_vect){
 wakeUpTime = true;
 }
 void setup()
 {
+  pinMode(RxEn, OUTPUT);
+  digitalWrite(RxEn, LOW);
   pinMode(13, OUTPUT);
   digitalWrite(13, LOW);
   Serial.begin(9600);	
@@ -52,6 +55,7 @@ void loop()
 
   else if(wakeUpTime ==true){
 unsigned long timeBeforeLoop = millis();
+    digitalWrite(RxEn, HIGH);
     do{
     if (driver.recv(buf, &buflen)) // Non-blocking
     {
@@ -96,7 +100,8 @@ unsigned long timeBeforeLoop = millis();
   Serial.println(timeElapsed);
   }
   while((timeElapsed <= 300) && (wakeUpTime == true));
-  wdt_reset();
+  pinMode(RxEn, LOW); //turn the radio off
+  wdt_reset(); //reset watchdog timer
   wakeUpTime = false;
   }
   
