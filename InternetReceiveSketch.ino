@@ -18,14 +18,32 @@ const int RxEn = 8;
 ISR(WDT_vect){
 wakeUpTime = true;
 }
+void turnOn(){
+  // myServo.attach(3);
+  myServo.write(1400);
+  delay(100);
+  myServo.write(1675);
+  // myServo.detach();
+}
+void turnOff(){
+  // myServo.attach(3);
+  myServo.write(2200);
+  delay(100);
+  myServo.write(1675);
+  // myServo.detach();
+}
 void setup()
 {
-  pinMode(RxEn, OUTPUT);
-  digitalWrite(RxEn, LOW);
-  pinMode(13, OUTPUT);
-  digitalWrite(13, LOW);
+  // pinMode(RxEn, OUTPUT);
+  // digitalWrite(RxEn, LOW);
+  // pinMode(13, OUTPUT);
+  // digitalWrite(13, LOW);
   Serial.begin(9600);	
   driver.init();
+  myServo.attach(3);
+  myServo.write(1675);
+  // myServo.detach();
+
   // Serial.println("This is the receiver sketch"); 
   // myServo.attach(3);
   // pinMode(7, OUTPUT);
@@ -54,9 +72,10 @@ void loop()
   }
 
   else if(wakeUpTime ==true){
+    buf[0] = 0;
+    buf[1] = 0;
 unsigned long timeBeforeLoop = millis();
-    digitalWrite(RxEn, HIGH);
-    delay(100);
+    // digitalWrite(RxEn, HIGH);
     do{
     if (driver.recv(buf, &buflen)) // Non-blocking
     {
@@ -67,40 +86,40 @@ unsigned long timeBeforeLoop = millis();
     }
     
   String message = (char*)buf;
+  // Serial.println((char*)buf);         
+
   message = message.substring(0, 2);    
   //  Serial.println(message);
     if(message == "Ga"){
-      buf[0] = 0;
-      buf[1] = 0;
+      myServo.attach(3);
       
       if(lightStatus == 1){
-        // myServo.write(2250);
-        // delay(1000);
-        // myServo.write(1685);
-        digitalWrite(13, HIGH);
-        delay(700);
-        digitalWrite(13, LOW);
+        Serial.println("Servo Moves now");
+        myServo.write(1400);
+        delay(750);
+        myServo.write(1675);
         lightStatus = 0;
-      
       }
       else if(lightStatus == 0){
-        // myServo.write(1400);
-        // delay(1000); 
-        // myServo.write(1675);       
-          digitalWrite(13, HIGH);
-          delay(700);
-          digitalWrite(13, LOW);
+          Serial.println("Servo Moves now 2");  
+          myServo.write(2200);  //this is the off position
+          delay(750);
+          myServo.write(1675);          
           lightStatus = 1;
       }
+      delay(500);
+      myServo.detach();
       wakeUpTime = false;
+      // Serial.println(wakeUpTime);
       delay(250);
-
     }  
   unsigned long timeAfterLoop = millis();
   timeElapsed = timeAfterLoop - timeBeforeLoop;
-  Serial.println(timeElapsed);
+  // Serial.println(timeElapsed);
   }
   while((timeElapsed <= 300) && (wakeUpTime == true));
+  // Serial.print("WakeUpTime after while loop is ");
+  // Serial.println(wakeUpTime);
   pinMode(RxEn, LOW); //turn the radio off
   wdt_reset(); //reset watchdog timer
   wakeUpTime = false;
