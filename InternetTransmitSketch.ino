@@ -17,7 +17,7 @@ void setup()
 {
     Serial.begin(9600);	  // Debugging only
     pinMode(2,INPUT);
-    pinMode(8,OUTPUT);
+    pinMode(7,INPUT);
     driver.init();
     
     // sleep_enable();
@@ -41,13 +41,14 @@ __asm__ __volatile__("sleep");
 }    
     // int buttonStatus = digitalRead(2);
 else if(sendTime==true){
-    for(int i =0; i<5;i++){
+    do{
     driver.send((uint8_t *)msg, strlen(msg));
     // Serial.println("hello");
     driver.waitPacketSent();
     Serial.println("Sent");
-    delay(10);
     }
+    while(digitalRead(7) == 1);
+    
     // delay(100);
     // digitalWrite(8, HIGH);
     // delay(1000);
@@ -56,3 +57,4 @@ else if(sendTime==true){
     }    
     
 }
+
