@@ -41,10 +41,13 @@ __asm__ __volatile__("sleep");
 }    
     // int buttonStatus = digitalRead(2);
 else if(sendTime==true){
+    int count = 0;
     do{
+    count = count+1;
     driver.send((uint8_t *)msg, strlen(msg));
     // Serial.println("hello");
     driver.waitPacketSent();
+    delay(500);
     Serial.println("Sent");
     }
     while(digitalRead(7) == 1);
