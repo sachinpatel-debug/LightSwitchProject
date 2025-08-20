@@ -5,9 +5,9 @@
 #include <string.h>
 #include <avr/interrupt.h>
 #define wdt_reset() __asm__ __volatile__("wdr");
-const int LED = 13;
+const int ServoEn = 8;
 volatile bool wakeUpTime = false;
-
+int cyclesSinceReceived = 0; //triggers if the receiver just got the message
 ServoTimer2 myServo;
 RH_ASK driver;
 int lightStatus = 0;
@@ -18,35 +18,27 @@ const int RxEn = 8;
 ISR(WDT_vect){
 wakeUpTime = true;
 }
-void turnOn(){
-  // myServo.attach(3);
-  myServo.write(1400);
-  delay(100);
-  myServo.write(1675);
-  // myServo.detach();
-}
-void turnOff(){
-  // myServo.attach(3);
-  myServo.write(2200);
-  delay(100);
-  myServo.write(1675);
-  // myServo.detach();
-}
 void setup()
 {
   // pinMode(RxEn, OUTPUT);
   // digitalWrite(RxEn, LOW);
   // pinMode(13, OUTPUT);
   // digitalWrite(13, LOW);
-  Serial.begin(9600);	
+  // pinMode(ServoEn, OUTPUT);
+  // digitalWrite(ServoEn, HIGH);
+  pinMode(RxEn, OUTPUT);
+  digitalWrite(RxEn, LOW);
+  Serial.begin(9600);
   driver.init();
   myServo.attach(3);
   myServo.write(1675);
   // myServo.detach();
+  delay(500);
+  digitalWrite(ServoEn, LOW);
 
   // Serial.println("This is the receiver sketch"); 
   // myServo.attach(3);
-  // pinMode(7, OUTPUT);
+  
   // myServo.write(1675);
   cli();
   wdt_reset();
@@ -58,6 +50,7 @@ void setup()
 
 void loop()
 {
+
   if(wakeUpTime == false){
     //sleep code here
     ADCSRA &= ~(1<<7);
@@ -71,7 +64,10 @@ void loop()
     
   }
 
-  else if(wakeUpTime ==true){
+  else if(wakeUpTime == true){
+    digitalWrite(RxEn, HIGH); //turns radio on
+    delay(100);
+    Serial.println(cyclesSinceReceived);
     buf[0] = 0;
     buf[1] = 0;
 unsigned long timeBeforeLoop = millis();
@@ -90,29 +86,46 @@ unsigned long timeBeforeLoop = millis();
 
   message = message.substring(0, 2);    
   //  Serial.println(message);
-    if(message == "Ga"){
+    if((message == "Ga") && (cyclesSinceReceived > 15000)){
+      cyclesSinceReceived = 0;
+      Serial.println("We are in");
+      // digitalWrite(ServoEn, HIGH);
+      delay(500);
       myServo.attach(3);
-      
+      delay(500);
       if(lightStatus == 1){
         Serial.println("Servo Moves now");
         myServo.write(1400);
         delay(750);
         myServo.write(1675);
+        delay(500);
         lightStatus = 0;
       }
       else if(lightStatus == 0){
           Serial.println("Servo Moves now 2");  
           myServo.write(2200);  //this is the off position
           delay(750);
-          myServo.write(1675);          
+          myServo.write(1675);   
+          delay(500);       
           lightStatus = 1;
       }
-      delay(500);
       myServo.detach();
+      delay(500);
+      digitalWrite(ServoEn, LOW);
       wakeUpTime = false;
+      
       // Serial.println(wakeUpTime);
       delay(250);
     }  
+    else{ //if we enter this else loop, the message received was not Ga
+      message = " ";
+      if(cyclesSinceReceived < 15000){
+      cyclesSinceReceived = cyclesSinceReceived + 1;
+      }
+      else{
+        cyclesSinceReceived = 16000;
+        }
+    }
   unsigned long timeAfterLoop = millis();
   timeElapsed = timeAfterLoop - timeBeforeLoop;
   // Serial.println(timeElapsed);
@@ -122,12 +135,10 @@ unsigned long timeBeforeLoop = millis();
   // Serial.println(wakeUpTime);
   pinMode(RxEn, LOW); //turn the radio off
   wdt_reset(); //reset watchdog timer
+  digitalWrite(RxEn, LOW); //turn radio off
   wakeUpTime = false;
   }
-  
-
-
-    
+   
     
   
 
