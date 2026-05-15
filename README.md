@@ -1,3 +1,2 @@
 # LightSwitchProject
-With a couple of Arduino Sketches, hardware, and Cad files, you can turn your lights on and off from your bed!
-With this project, you can press a button on your bedside table, and the lightswitch that is out of arms reach will turn off. 
+This new version was built in 3 days. I built it so that one would not have to get up to turn the lights and fan on or off. They can do it from their bed.
